@@ -9,14 +9,15 @@ class Agilent_81635A(Instrument_pyvisa):
 
     gpib_address = 'GPIB0::20::INSTR'
 
-    def __init__(self, slot, channel):
+    def __init__(self, gpib_num, COMPort, slot, channel):
+        
+        self.gpib_address = 'GPIB'+str(gpib_num)+'::'+str(COMPort)+'::INSTR'
         self.slot = slot
         self.channel = channel
 
     def measure_power(self):
         """Fetch the power measured by the power sensor"""
-        power = np.squeeze(
-            self.inst.query_ascii_values("fetch" + str(self.slot) + ":channel" + str(self.channel) + ":pow?"))
+        power = np.squeeze(self.inst.query_ascii_values("fetch" + str(self.slot) + ":channel" + str(self.channel) + ":pow?"))
         if power >= 0:
             power = -90
         return power
@@ -82,3 +83,4 @@ class Agilent_81635A(Instrument_pyvisa):
         
         obj1.setTLSOutput('lowsse', slot=0)
         obj1.setTLSState('off' , slot=0)
+        
