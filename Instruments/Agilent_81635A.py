@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from Instrument_pyvisa import Instrument_pyvisa
-from hp816x_instr import hp816x
+from Instruments.Instrument_pyvisa import Instrument_pyvisa
+from Instruments.hp816x_instr import hp816x
 
 # Power sensor class
 class Agilent_81635A(Instrument_pyvisa):
