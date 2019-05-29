@@ -4,7 +4,7 @@ This object is a Wavelength Sweep datafile containing all the relevant informati
 
 
 
-Author : Simon Bélanger-de Villers
+Author : Simon Belanger-de Villers
 Date : April 18th 2019
 
 """
@@ -79,9 +79,9 @@ class sweepobj(object):
         ax.yaxis.set_major_locator(ticker.MultipleLocator(10))
         ax.yaxis.set_minor_locator(ticker.MultipleLocator(2))
         ax.tick_params(which='major', direction='inout', length=8, width=2, colors='k',
-                       labelsize=18, grid_alpha=0.5)
+                       labelsize=18)
         ax.tick_params(which='minor', direction='in', length=4, width=1, colors='k',
-                       labelsize=18, grid_alpha=0.5)
+                       labelsize=18)
 
         plt.plot(self.wavelength * 1e9, self.detector_1, label="Through port", color="blue", linestyle='dashed')
         plt.plot(self.wavelength * 1e9, self.detector_2, label="Drop port", color="red")
@@ -89,7 +89,7 @@ class sweepobj(object):
         plt.ylabel("Transmission [dB]", fontsize=18)
         plt.xlim(self.xlims)
         plt.ylim(self.ylims)
-        # plt.legend(loc='upper right')
+        plt.legend(loc='upper right')
         plt.show()
 
     def save(self, filename):

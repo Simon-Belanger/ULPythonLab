@@ -2,7 +2,11 @@ from Instruments.Instrument_pyvisa import Instrument_pyvisa
 
 # DC source class
 class Keithley_2612B(Instrument_pyvisa):
-    """Creates a detector object to enable the operation of the Keithley 2612B SMU."""
+    """
+    Creates a detector object to enable the operation of the Keithley 2612B SMU.
+    
+    example: DC = Keithley_2612B(0,20,'a')
+    """
 
     voltage_range = [200e-3, 2, 20, 200]
     current_range = [100e-9, 1e-6, 10e-6, 100e-6, 1e-3, 10e-3, 100e-3, 1, 1.5, 10]
