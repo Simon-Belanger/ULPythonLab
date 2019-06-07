@@ -21,6 +21,7 @@ class fiber_array(object):
     n_glass = 1.4       # Index of refraction of silica glass [-]
     n_air   = 1.        # Index of refraction of air [-]
 
+
     array_width     = 30    # Total thickness of the fiber array [µm]
     array_heigth    = 100   # Total height of the fiber array [µm]
     lid_thickness   = 10    # Thickness of the lid [µm]
@@ -43,7 +44,7 @@ class fiber_array(object):
         
     def theta_refrac(self):
         """ Compute the refraction angle out of the fiber array the given polish angle and materials. """
-        theta_refrac = math.degrees(math.asin((self.n_glass/self.n_air) * math.sin(math.radians(self.theta_polish)))) - self.theta_polish
+        theta_refrac = math.degrees(math.asin((self.n_glass/self.n_air) * math.sin(math.radians(self.theta_polish)))) #- self.theta_polish
         return theta_refrac
     
     def measure_theta_array(self, theta_incidence):
@@ -146,14 +147,7 @@ class fiber_array(object):
 
 if __name__ == '__main__':
 
-    far = fiber_array(name = "Aeponyx_24", theta_array = 10., theta_polish = 20.)
+    far = fiber_array(name = "Aeponyx_24", theta_array = 0., theta_polish = 0.)
     print(far)
-
-    #print("Incidence angle is 20 deg, measured angle must be: " + str(far.theta_measured(20)) + " deg.")
-    #fig = plt.figure()
-    #ax = fig.add_subplot(111)
-    #far.draw_shapes(ax)
-    #ax.axis('scaled')
-    #plt.show()
 
     far.show_util()
