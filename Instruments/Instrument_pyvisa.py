@@ -1,5 +1,5 @@
 import visa
-from Instruments.Instrument import Instrument
+from Instrument import Instrument
 
 
 class Instrument_pyvisa(Instrument):
