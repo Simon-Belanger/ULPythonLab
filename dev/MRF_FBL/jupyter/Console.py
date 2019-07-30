@@ -13,10 +13,12 @@ except:
 
 #%%
 # Load Modules
+import sys, os
+sys.path.append(os.path.join(sys.path[0],'bar','sub','dir'))
 from Instruments import *
 from methods.Algo import *
 from methods.MRF import RealMRF
-import os
+
 get_ipython().run_line_magic('matplotlib', 'inline')
 
 # Lightwave Measurement System

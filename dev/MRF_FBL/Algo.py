@@ -69,7 +69,7 @@ def CoordsDescent(MRF, number_iter, delay=0., mode='manual', plotPowMat=True):
             if mode == 'manual': # Shows the power vs bias plot
                 plotsweep(bias_testpoints, power_list)
                 # pour choisir une valeur autre que le minimum
-                bias_voulu = raw_input('Enter your bias:')
+                bias_voulu = input('Enter your bias:') # raw_input if problems occur (e.g. Python 2.X)
                 if bias_voulu == "min": # Easy command to get the minimal value
                     chosen_bias = bias_testpoints[power_list.index(min(power_list))]
                 elif bias_voulu == "max": # Easy command to get the maximal value
