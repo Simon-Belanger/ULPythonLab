@@ -19,7 +19,7 @@ QUERY:
 class LUNA_OVA(Instrument_pyvisa):
 
     def __init__(self):
-        self.name = 'Simon';
+        self.name = 'Simon'
 
     # Import functions from the different submodules
     #from OVA._system    import 
@@ -31,10 +31,11 @@ class LUNA_OVA(Instrument_pyvisa):
 
     # Put setters and getters or property to access the object properties instead of the instrument properties
 
+# Testing
 if __name__ == "__main__":
+    
     ins = LUNA_OVA()
-    print(ins.name)
-    ins.test()
-    print(ins.name)
+
+    ins.isWarm()
 
 
