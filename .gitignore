@@ -1,6 +1,7 @@
 # OSX trash file
 .DS_Store
 .icloud
+.vscode
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
