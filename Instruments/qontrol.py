@@ -6,6 +6,9 @@
 ##
 ##  Revision 2019-04-A
 ##
+## 	Edited on July 31st by Simon Bélanger-de Villers
+##		- Fixed issue where the voltage output would be different depending on the driver model.
+##
 ##############################################################################
 
 from __future__ import print_function
@@ -817,14 +820,14 @@ class QXOutput(Qontroller):
 	
 	
 	def set_value (self, ch, para='V', new=0):
+		if para in ['V','VMAX']:
+			full = self.v_fulls[ch]
+		elif para in ['I','IMAX']:
+			full = self.i_fulls[ch]
 		if self.binary_mode:
-			if para in ['V','VMAX']:
-				full = self.v_fulls[ch]
-			elif para in ['I','IMAX']:
-				full = self.i_fulls[ch]
 			self.issue_binary_command(CMD_CODES[para.upper()], ch=ch, RW=0, value_int=int((new/full)*0xFFFF) )
 		else:
-			self.issue_command(para, ch=ch, operator='=', value=new)
+			self.issue_command(para, ch=ch, operator='=', value=(new/full))
 	
 	def get_value (self, ch, para='V'):
 	

@@ -1,13 +1,21 @@
+"""
+Various resonance wavelength alignment algorithms that can be used along with the 
+MRF object to tune/align resonant systems.
+
+Author      : Simon Bélanger-de Villers (simon.belanger-de-villers.1@ulaval.ca)
+Created     : October 2018
+Last edited : July 30th 2019
+"""
+
 # Import the required modules
-import time
+import time, pickle
 import numpy as np
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
-import pickle
 
 # Coordinates descent Algorithm 
-def sweep_bias(MRF,channel):
-    """Coarse tuning of a MRF object using the coordinates descent algorithm."""
+def sweep_bias(MRF, channel):
+    " Coarse tuning of a MRF object using the coordinates descent algorithm. "
     
     # Possible bias values
     bias_min = 0

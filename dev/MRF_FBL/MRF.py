@@ -9,10 +9,9 @@ Created     : October 2018
 Last edited : July 30th 2019
 """
 
-import time
+import time, os
 import numpy as np
 import matplotlib.pyplot as plt
-import os
 
 # MRF object class (Abstract form)
 class RealMRF(object):
@@ -20,7 +19,8 @@ class RealMRF(object):
     # Delay between the moment the bias is applied and the time the optical power is measured
     thermal_delay = 0.3 
     
-    def __init__(self,instruments, PWMchannel, ResolutionDC=None, data_dir=os.getcwd()):
+    def __init__(self, instruments, PWMchannel, ResolutionDC=None, data_dir=os.getcwd()):
+
         self.PWMchannel = PWMchannel-1
         self.LMS = instruments['LMS']      
         self.DCsources = instruments['DCsources']
@@ -101,7 +101,7 @@ class RealMRF(object):
             np.savetxt(complete_name + ".txt", (wvl_sweep,pow_sweep.transpose()[0],pow_sweep.transpose()[1]))
             f.savefig(complete_name + ".pdf")
     
-    def apply_bias(self,source_num,bias):
+    def apply_bias(self, source_num, bias):
         " Set the bias for the ring #[ring_number] at [bias_value]. "
         
         # Clamp the supplied bias value between 0 and the limit of the corresponding DC source
@@ -134,7 +134,7 @@ class RealMRF(object):
         for i in range(self.num_parameters):
             self.apply_bias(i,0)      
     
-    def obj_function(self,bias_list):
+    def obj_function(self, bias_list):
         """ 
         Microring Filter objective function that has to be optimized.
         
@@ -152,7 +152,7 @@ class RealMRF(object):
         # Measure the optical power on the sensor
         return float(self.LMS.readPWM(2, self.PWMchannel))
     
-    def Drop_function(self,bias_list):
+    def Drop_function(self, bias_list):
         " When tracking the drop port, inverse of the drop port power is used to minimze. "
         return -self.obj_function(bias_list)
     
@@ -177,8 +177,36 @@ class mrfQontrolOva(RealMRF):
     The purpose is to make a subclass that will make use of the Liskov substitution principle
     throughout the code.
     """
-    def __init__(self):
-        super.__init__(self)
+    from Instruments.qontrol import QXOutput
+
+    def __init__(self, qontrolSerialPortName):
+
+        # Init the Qontrol
+        self.q = QXOutput(serial_port_name = qontrolSerialPortName, response_timeout = 0.1)
+
+        # Map the qontrol channels to the MRF actuators
+
+    def connect_instruments(self):
+        pass
+
+    def apply_bias(self, channel, bias):
+        " Apply a given bias to a given channel of the qontrol. "
+        self.q.v[channel] = bias
+
+    def apply_bias_mult(self, bias_list):
+        super.apply_bias_mult(self, bias_list)
+
+    # TODO check if it is possible to interract with the qontrol through the MRF object
+    # TODO check if it is possible to map the number of active channels on the qontrol
+    #       to actuators and not use the rest
+    # TODO conversion from ring channel (1:NRings) to qontrol channel (1:NChannels)
+    # TODO set current/voltage/power limit
+    # TODO finish abstract class and move the current implementation to mrfLmsDCsources
+    # TODO implement all the required methods 
+    # TODO do the same for the LUNA OVA
+
+
+
 
 
 class mrfLmsDCsources(RealMRF):
@@ -188,6 +216,6 @@ class mrfLmsDCsources(RealMRF):
 
     The purpose is to make a subclass that will make use of the Liskov substitution principle
     throughout the code.
-    """    
+    """
     def __init__(self):
         super.__init__(self)
