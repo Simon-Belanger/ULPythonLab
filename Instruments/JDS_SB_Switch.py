@@ -1,20 +1,16 @@
-#Simon Belanger-de Villers
-#4th November 2019
-#Characterize the JDS OPtical Switch.
-#
-# Use case
-#
-# switch = opticalSwitch(0, 7)
-# switch.connect()
-# switch.identify()
-# 
-# switch.setChannel(1)
-
-
-
 from Instruments.Instrument_pyvisa import Instrument_pyvisa
 
-class opticalSwitch(Instrument_pyvisa):
+class JDSopticalSwitch(Instrument_pyvisa):
+    """
+       JDS Uniphase Fiber Optic Switch model SB [1x10]
+       P/N : SB10B5-C2FP
+
+        Use Case Example:
+         switch = opticalSwitch(0, 7)
+         switch.connect()
+         switch.identify()
+         switch.setChannel(1)
+    """
 
     def __init__(self, gpib_num, COMPort):
         
@@ -49,14 +45,3 @@ class opticalSwitch(Instrument_pyvisa):
 
     def readConditionRegister(self):
     	return self.inst.query('CNB?')
-
-
-OS = opticalSwitch(0,7)
-OS.connect()
-
-OS.identify()
-OS.reset()
-
-
-OS.setChannel(5)
-print(OS.getChannel())

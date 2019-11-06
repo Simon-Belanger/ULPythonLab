@@ -2,10 +2,13 @@
 This file implements the sweepobj class.
 This object is a Wavelength Sweep datafile containing all the relevant information fields and data fields to handle and archive.
 
+TODO : Make a general class 'pickleWizard' that can be used to pickle an object of any type.
+TODO : Make the 'sweepobj' a children of 'pickleWizard'.
+TODO : Make a GUI for opening those files with a file explorer
 
-
-Author : Simon Belanger-de Villers
-Date : April 18th 2019
+Author   : Simon Belanger-de Villers
+Created  : April 18th 2019
+Modified : November 6th 2019
 
 """
 
@@ -59,7 +62,6 @@ class sweepobj(object):
             example : sweepobj(<filename>).show()
                 this will plot the sweep contained in the datafile <filename>.pickle
         """
-
         if filename != None:
             self.load(filename)
 
@@ -94,60 +96,24 @@ class sweepobj(object):
 
     def save(self, filename):
         """ Save the content of a sweepobjct to a datafile. """
-
-        outfile = open(filename +'.pickle', 'wb')
-        pickle.dump(self.__dict__, outfile, 2)
-        outfile.close()
+        print('Saving ' + filename + '.pickle ...')
+        with open(filename + '.pickle', 'wb') as f:
+            pickle.dump(self.__dict__, f, 2)
 
     def load(self, filename):
-        """ Load a sweepobject data from a datafile.
-
-        """
-        infile = open(filename +'.pickle', 'rb')
-        tmp_dict = pickle.load(infile)
-        infile.close()
-        self.__dict__.update(tmp_dict)
+        """ Load a sweepobject data from a datafile. """   
+        print('Loading ' + filename + '.pickle ...')
+        with open(filename + '.pickle', 'rb') as f:
+            self.__dict__.update(pickle.load(f, encoding='latin1'))
 
     def info(self):
         """ Function that explicits all the parameters of the datafile. """
-
         pprint(self.__dict__, indent=2)
 
 
 """
 Extra functions used by the previous instance of this code.
 """
-def load_spectrum(filename):
-    """Load the datafile."""
-    wavelength, power_1, power_2 = np.loadtxt(filename)
-    return wavelength, power_1, power_2
-
-def plot_spectrum(wavelength, power_1, power_2):
-    """Plot transmission data."""
-    plt.figure(figsize=(10, 4))
-    ax = plt.axes()
-    ax.xaxis.set_major_locator(ticker.MultipleLocator(5))
-    ax.xaxis.set_minor_locator(ticker.MultipleLocator(1))
-    ax.yaxis.set_major_locator(ticker.MultipleLocator(10))
-    ax.yaxis.set_minor_locator(ticker.MultipleLocator(2))
-    ax.tick_params(which='major', direction='inout', length=8, width=2, colors='k',
-                   labelsize=18, grid_alpha=0.5)
-    ax.tick_params(which='minor', direction='in', length=4, width=1, colors='k',
-                   labelsize=18, grid_alpha=0.5)
-
-    plt.plot(wavelength*1e9, power_1, label="Through port", color="blue", linestyle='dashed')
-    plt.plot(wavelength*1e9, power_2, label="Drop port", color="red")
-    plt.xlabel("Wavelength [nm]", fontsize=18)
-    plt.ylabel("Transmission [dB]", fontsize=18)
-    plt.xlim([1515,1557])
-    plt.ylim([-40,0])
-    #plt.legend(loc='upper right')
-    plt.show()
-
-def load_and_plot(filename):
-    """Load the datafile and plot the transmission from the data."""
-    wavelength, power_1, power_2 = load_spectrum(filename)
-    plot_spectrum(wavelength, power_1, power_2)
 
 def normalise_data(filename, align_filename):
     """Normalise the data with alignment marks."""
@@ -163,15 +129,6 @@ def combine_alignment(align1_filename, align2_filename, merge_filename):
     wavelength, align2_det1, align2_det2 = load_spectrum(align2_filename)
     # Combine and save
     np.savetxt(merge_filename,(wavelength, align1_det1, align2_det2))
-
-def calibrate(calibration_sweepobj):
-    """ Pass an input calibration sweepobject to the curent sweep datafile in order normalise the response."""
-
-    # Interpolate the calibration data to the resolution of the sweep data points (resample the signal)
-    pass
-
-
-#TODO : Make a GUI for opening those files with a file explorer
 
 if __name__ == "__main__":
 
