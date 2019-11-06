@@ -1,15 +1,26 @@
-import time
+"""
+MRF Object Class and subclasses
+
+The MRF is an object controlling the microring filter. It handles input signal from a 
+photodetector and returns inputs to the actuators (thermal phase shifters).
+
+Author      : Simon Bélanger-de Villers (simon.belanger-de-villers.1@ulaval.ca)
+Created     : October 2018
+Last edited : July 30th 2019
+"""
+
+import time, os
 import numpy as np
 import matplotlib.pyplot as plt
-import os
 
-# MRF object class
+# MRF object class (Abstract form)
 class RealMRF(object):
-    """"""
+
     # Delay between the moment the bias is applied and the time the optical power is measured
     thermal_delay = 0.3 
     
-    def __init__(self,instruments, PWMchannel, ResolutionDC=None, data_dir=os.getcwd()):
+    def __init__(self, instruments, PWMchannel, ResolutionDC=None, data_dir=os.getcwd()):
+
         self.PWMchannel = PWMchannel-1
         self.LMS = instruments['LMS']      
         self.DCsources = instruments['DCsources']
@@ -33,7 +44,7 @@ class RealMRF(object):
             
     
     def connect_instruments(self):
-        """Conncet the DC sources remotely and set their range to high."""
+        " Connect the DC sources remotely and set their range to high. "
         # Connect the power sensor
         self.LMS.connect('GPIB0::20::INSTR')
         self.setup_LMS()
@@ -42,7 +53,7 @@ class RealMRF(object):
             instrument.connect()
             
     def setup_LMS(self):
-        """Setup the Lightwave Measurement System for use."""
+        " Setup the Lightwave Measurement System for use. "
         self.LMS.setTLSOutput('lowsse')
         self.LMS.setPWMPowerUnit(2, 0, 'dBm')
         self.LMS.setPWMPowerUnit(2, 1, 'dBm')
@@ -50,16 +61,17 @@ class RealMRF(object):
         self.LMS.setPWMPowerRange(2, 1, rangeMode='auto')
         
     def wvl_sweep(self, wvl_start=1540, wvl_stop=1570, wvl_step=0.02, plot_det1 = True, plot_det2 = True, filename=None):
-        """Perform a wavelength sweep over the specified range."""
+        " Perform a wavelength sweep over the specified range. "
         
         # Init Instrument
-        self.LMS.sweepUnit = 'dBm'
-        self.LMS.sweepLaserOutput = 'lowsse' # lowsse ou highpower
-        self.LMS.sweepStartWvl = wvl_start * 1e-9
-        self.LMS.sweepStopWvl = wvl_stop * 1e-9
-        self.LMS.sweepStepWvl = wvl_step * 1e-9
-        self.LMS.sweepInitialRange = -20
-        self.LMS.sweepRangeDecrement = 20
+        self.LMS.sweepUnit              = 'dBm'
+        self.LMS.sweepLaserOutput       = 'lowsse' # lowsse or highpower
+        self.LMS.sweepStartWvl          = wvl_start * 1e-9
+        self.LMS.sweepStopWvl           = wvl_stop * 1e-9
+        self.LMS.sweepStepWvl           = wvl_step * 1e-9
+        self.LMS.sweepInitialRange      = -20
+        self.LMS.sweepRangeDecrement    = 20
+    
         self.LMS.setPWMPowerUnit(2, 0, 'dBm')
         self.LMS.setPWMPowerUnit(2, 1, 'dBm')
 
@@ -89,8 +101,8 @@ class RealMRF(object):
             np.savetxt(complete_name + ".txt", (wvl_sweep,pow_sweep.transpose()[0],pow_sweep.transpose()[1]))
             f.savefig(complete_name + ".pdf")
     
-    def apply_bias(self,source_num,bias):
-        """Set the bias for the ring #[ring_number] at [bias_value]"""
+    def apply_bias(self, source_num, bias):
+        " Set the bias for the ring #[ring_number] at [bias_value]. "
         
         # Clamp the supplied bias value between 0 and the limit of the corresponding DC source
         limited_bias = self.limit_voltage(bias, self.LowerLimitDC[source_num-1], self.UpperLimitDC[source_num-1])
@@ -100,17 +112,17 @@ class RealMRF(object):
         self.DCsources[source_num-1].source_voltage(limited_bias)
         
     def apply_bias_mult(self, bias_list):
-        """Set the bias for each ring with values in a list of bias."""
+        " Set the bias for each ring with values in a list of bias. "
         for i in range(self.num_parameters):
             self.apply_bias(i+1,bias_list[i])
             
     def average_power(self, avgtime):
-        """"""
+        " Get the average power from the LMS. " 
         self.LMS.setPWMAveragingTime(2, self.PWMchannel, avgtime)
     
     @staticmethod
     def limit_voltage(bias, limit_inf, limit_sup):
-        """ Returns a bias value between 0 and limit."""
+        " Returns a bias value between 0 and limit. "
         if bias < limit_inf:
             print("Warning: The supplied bias value should be larger than " + str(limit_inf) + " V.")
         elif bias > limit_sup:
@@ -118,11 +130,11 @@ class RealMRF(object):
         return max(min(bias, limit_sup), limit_inf)
         
     def DC_off(self):
-        """Turn off the DC bias for all DC sources."""
+        " Turn off the DC bias for all DC sources. "
         for i in range(self.num_parameters):
             self.apply_bias(i,0)      
     
-    def obj_function(self,bias_list):
+    def obj_function(self, bias_list):
         """ 
         Microring Filter objective function that has to be optimized.
         
@@ -140,22 +152,70 @@ class RealMRF(object):
         # Measure the optical power on the sensor
         return float(self.LMS.readPWM(2, self.PWMchannel))
     
-    def Drop_function(self,bias_list):
-        """
-        When tracking the drop port, inverse of the drop port power is used to minimze.
-        """
+    def Drop_function(self, bias_list):
+        " When tracking the drop port, inverse of the drop port power is used to minimze. "
         return -self.obj_function(bias_list)
     
     def Thru_function(self, bias_list):
-        """
-        When tracking the Thru port, the Thru port power is used to minimze.
-        """
+        " When tracking the Thru port, the Thru port power is used to minimze. "
         return self.obj_function(bias_list)
     
     def get_bias(self):
-        """Return the bias applied with the number of significative digits. """
+        " Return the bias applied with the number of significative digits. "
         
         sig_figure = []
         for res_element in self.ResolutionDC:
             sig_figure.append(len(str(res_element))-2)
         print(sig_figure)
+
+
+class mrfQontrolOva(RealMRF):
+    """ 
+    Implementation of the MRF with the LUNA Optical Vector Analyzer (OVA) and 
+    the Qontrol multi-channel power supply.
+
+    The purpose is to make a subclass that will make use of the Liskov substitution principle
+    throughout the code.
+    """
+    from Instruments.qontrol import QXOutput
+
+    def __init__(self, qontrolSerialPortName):
+
+        # Init the Qontrol
+        self.q = QXOutput(serial_port_name = qontrolSerialPortName, response_timeout = 0.1)
+
+        # Map the qontrol channels to the MRF actuators
+
+    def connect_instruments(self):
+        pass
+
+    def apply_bias(self, channel, bias):
+        " Apply a given bias to a given channel of the qontrol. "
+        self.q.v[channel] = bias
+
+    def apply_bias_mult(self, bias_list):
+        super.apply_bias_mult(self, bias_list)
+
+    # TODO check if it is possible to interract with the qontrol through the MRF object
+    # TODO check if it is possible to map the number of active channels on the qontrol
+    #       to actuators and not use the rest
+    # TODO conversion from ring channel (1:NRings) to qontrol channel (1:NChannels)
+    # TODO set current/voltage/power limit
+    # TODO finish abstract class and move the current implementation to mrfLmsDCsources
+    # TODO implement all the required methods 
+    # TODO do the same for the LUNA OVA
+
+
+
+
+
+class mrfLmsDCsources(RealMRF):
+    """ 
+    Implementation of the MRF with the Agilent Lightwave Measurement System and various 
+    DC sources e.g. Keithley SMUs, Agilent Power Supplies.
+
+    The purpose is to make a subclass that will make use of the Liskov substitution principle
+    throughout the code.
+    """
+    def __init__(self):
+        super.__init__(self)

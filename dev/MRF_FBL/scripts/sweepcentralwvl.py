@@ -1,3 +1,9 @@
+"""
+Obsolete? 
+Seems like a copy of MRF that was not maintained.
+
+"""
+
 import time
 import numpy as np
 import matplotlib.pyplot as plt

@@ -1,13 +1,21 @@
+"""
+Various resonance wavelength alignment algorithms that can be used along with the 
+MRF object to tune/align resonant systems.
+
+Author      : Simon Bélanger-de Villers (simon.belanger-de-villers.1@ulaval.ca)
+Created     : October 2018
+Last edited : July 30th 2019
+"""
+
 # Import the required modules
-import time
+import time, pickle
 import numpy as np
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
-import pickle
 
 # Coordinates descent Algorithm 
-def sweep_bias(MRF,channel):
-    """Coarse tuning of a MRF object using the coordinates descent algorithm."""
+def sweep_bias(MRF, channel):
+    " Coarse tuning of a MRF object using the coordinates descent algorithm. "
     
     # Possible bias values
     bias_min = 0
@@ -69,7 +77,7 @@ def CoordsDescent(MRF, number_iter, delay=0., mode='manual', plotPowMat=True):
             if mode == 'manual': # Shows the power vs bias plot
                 plotsweep(bias_testpoints, power_list)
                 # pour choisir une valeur autre que le minimum
-                bias_voulu = raw_input('Enter your bias:')
+                bias_voulu = input('Enter your bias:') # raw_input if problems occur (e.g. Python 2.X)
                 if bias_voulu == "min": # Easy command to get the minimal value
                     chosen_bias = bias_testpoints[power_list.index(min(power_list))]
                 elif bias_voulu == "max": # Easy command to get the maximal value
