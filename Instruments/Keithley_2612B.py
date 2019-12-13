@@ -12,8 +12,10 @@ class Keithley_2612B(Instrument_pyvisa):
     current_range = [100e-9, 1e-6, 10e-6, 100e-6, 1e-3, 10e-3, 100e-3, 1, 1.5, 10]
 
     def __init__(self, gpib_num, COMPort, channel):
-        self.channel = self.format_chan_name(channel)
-        self.gpib_address = 'GPIB'+str(gpib_num)+'::'+str(COMPort)+'::INSTR'
+        self.channel        = self.format_chan_name(channel)
+        self.gpib_address   = 'GPIB'+str(gpib_num)+'::'+str(COMPort)+'::INSTR'
+        self.name           = 'Keithley2612B::' + str(COMPort) +  '::' + str(self.channel)
+        self.connect()
 
     def format_chan_name(self, chan_name):
         """Function used to format the input channel name to something valid."""
@@ -94,7 +96,7 @@ class Keithley_2612B(Instrument_pyvisa):
     # Measure commands
     def measure_current(self):
         """Request a current reading."""
-        return self.inst.query_ascii_values("print(smu" + self.channel + ".measure.i())")
+        return self.inst.query_ascii_values("print(smu" + self.channel + ".measure.i())")[0]
 
     def measure_voltage(self):
         """Request a voltage reading."""

@@ -28,7 +28,7 @@ class TCP(object):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
         self.sock.settimeout(10)
         try:
-            self.sock.connect((self.__host,self.__port))
+            self.sock.connect((self.__host, self.__port))
         except:
             raise socket.timeout("Fail to connect to %s:%i" %(self.__host,self.__port))
         
@@ -70,7 +70,7 @@ class TCP(object):
             n += len(self.sock.recv(1024))
         return n              
            
-    def query(self,cmd):
+    def query(self, cmd):
         '''query result from Luna'''
         self.write(cmd)
         data =  self.read_raw()

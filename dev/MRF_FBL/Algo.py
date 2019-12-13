@@ -14,87 +14,57 @@ from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 
 # Coordinates descent Algorithm 
-def sweep_bias(MRF, channel):
-    " Coarse tuning of a MRF object using the coordinates descent algorithm. "
-    
-    # Possible bias values
-    bias_min = 0
-    bias_max = 3
-    bias_points = 100
-    bias_testpoints = np.linspace(bias_min,bias_max,bias_points).tolist()
+def sweep_bias(MRF, channel, voltageList=np.linspace(0,3,100)):
+    """ Coarse tuning of a MRF object using the coordinates descent algorithm. 
+        Might be obsolete!!
+    """
     
     # Turn on the laser and set the wavelength
-    MRF.PD.set_wavelength(1550)
-    MRF.PD.laser_on()
+    MRF.LMS.setTLSWavelength(1550e-9)
+    MRF.LMS.setTLSState('on')
    
     power_list = []
-    for k in bias_testpoints: # For each bias value
-        MRF.apply_bias(channel,k)
-        time.sleep(0.2)
-        power_list.append(MRF.PD.measure_power())
-    plotsweep(bias_testpoints, power_list)
-    MRF.apply_bias(channel,bias_testpoints[power_list.index(min(power_list))])
+    for voltage in voltageList.tolist(): # For each bias value
+        MRF.apply_bias(channel, voltage)
+        time.sleep(MRF.thermalDelay)
+        powerList.append(MRF.measurePower())
+    plotsweep(voltageList, powerList)
+    MRF.apply_bias(channel, bias_testpoints[power_list.index(min(power_list))])
     # Turn on the laser 
-    MRF.PD.laser_off()
+    MRF.LMS.setTLSState('off')
 
 # Coordinates descent Algorithm 
-def CoordsDescent(MRF, number_iter, delay=0., mode='manual', plotPowMat=True):
-    """
-    Coarse tuning of a MRF object using the coordinates descent algorithm.
-    
+def CoordsDescent(MRF, numIter, mode='manual', plotPowMat=True):
+    """ Coarse tuning of a MRF object using the coordinates descent algorithm.
     Args:
-        MRF (mrf): Microring filter object.
-        number_iter (int): number of iterations to perform.
-        delay (float): time delay between applying the bias and measuring the optical power [default = 0.1] .
-    
+        MRF     : Microring filter object.                                              [mrf]
+        numIter : Number of iterations to perform.                                      [int]
     Returns:
-    
+        x_i     : Command log (applied bias to the heaters).                                [list]
+        f_i     : Output log (power measured a the PD).                                     [list]
     """
     
-    x_i = [] # Bias applied
-    f_i = [] # Max power measured
-    power_mat = [[] for ii in range(MRF.num_parameters)] # Power map for each tuner
+    x_i, f_i    = [], []                                    # Bias applied , Max power measured
+    power_mat   = [[] for ii in range(MRF.num_parameters)]  # Power map for each tuner
 
     # Turn on the laser and set the wavelength
-    MRF.LMS.setTLSState('on')
-    time.sleep(5)
-    for i in range(1,number_iter+1): # For each iteration
-        print("Progress update : Iteration #" + str(i) + " - Initiating ... ")
-        for j in range(0,MRF.num_parameters): # For each ring
-            print("Progress update : Iteration #" + str(i) + " - Sweeping ring #" + str(j) + " ...")
+    MRF.LMS.setTLSState('on'), time.sleep(5)
+    for i in range(1, number_iter+1): # For each iteration
+        print("Progress update : Iteration #{}/{} - Initiating ... ".format(i, number_iter))
+        for j in range(0, MRF.num_parameters): # For each ring
+            print("Progress update : Iteration #{}/{} - Sweeping ring #{}/{} ...".format(i, number_iter+1, j+1, MRF.num_parameters))
+            
             power_list = []
-            
-            # Possible bias values
-            bias_testpoints = np.arange(MRF.LowerLimitDC[j],MRF.UpperLimitDC[j]+MRF.ResolutionDC[j],MRF.ResolutionDC[j]).tolist()
-            
-            for k in bias_testpoints: # For each bias value
-                MRF.apply_bias(j+1,k)
-                time.sleep(delay)
-                power_list.append(MRF.LMS.readPWM(2, MRF.PWMchannel))            
+            for k in np.arange(MRF.LowerLimitDC[j], MRF.UpperLimitDC[j]+MRF.ResolutionDC[j], MRF.ResolutionDC[j]).tolist(): # For each bias value
+                MRF.apply_bias(j+1, k)
+                time.sleep(MRF.thermalDelay)
+                power_list.append(MRF.measurePower())            
             power_mat[j].append(power_list)
             
-            # Depending on the chosen mode
-            if mode == 'manual': # Shows the power vs bias plot
-                plotsweep(bias_testpoints, power_list)
-                # pour choisir une valeur autre que le minimum
-                bias_voulu = input('Enter your bias:') # raw_input if problems occur (e.g. Python 2.X)
-                if bias_voulu == "min": # Easy command to get the minimal value
-                    chosen_bias = bias_testpoints[power_list.index(min(power_list))]
-                elif bias_voulu == "max": # Easy command to get the maximal value
-                    chosen_bias = bias_testpoints[power_list.index(max(power_list))]
-                else: # Custom value
-                    chosen_bias = bias_voulu
-            elif mode == 'min': # Always choose the minimum value
-                chosen_bias = bias_testpoints[power_list.index(min(power_list))]
-            elif mode == 'max': # Always choose the maximum value
-                chosen_bias = bias_testpoints[power_list.index(max(power_list))]
-            MRF.apply_bias(j+1, chosen_bias)    
+            MRF.apply_bias(j+1, selectBiasPoint(bias_testpoints, power_list, mode))    
         
-        # Save the iteration Log
-        x_i.append(MRF.applied_bias)
-        f_i.append(max(power_list))
+        x_i.append(MRF.applied_bias), f_i.append(max(power_list)) # Save the iteration Log
 
-    # Turn on the laser 
     MRF.LMS.setTLSState('off')
     
     # Plot power map
@@ -127,11 +97,12 @@ def NelderMead(MRF, x0=[], port='max'):
 def tuneMRF(MRF, wavelength, delay=0.1, port='max'):
     """Tune/stabilise the MRF object using coarse + fine algorithms"""
    
-    MRF.LMS.setTLSWavelength(wavelength*1e-9)
+    MRF.LMS.setTLSWavelength(wavelength)
     
     CoordsDescent(MRF, 2, delay, port) # Coordinates descent
     NelderMead(MRF,[], port) # Nelder Mead
     
+# Various Plotting methods
 def plotsweep(bias, power):
     plt.plot(bias, power)
     plt.plot([bias[power.index(min(power))]], [min(power)], marker='o', markersize=10, color="red")
@@ -164,4 +135,38 @@ def plotPowMap(MRF, power_mat):
             plt.ylabel("Power [dBm]")
             plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
         plt.show()
+
+def selectBiasPoint(biasList, powerList, mode):
+    """ Return the selected bias value that will be applied to the heaters from a data list consisting 
+    if a pair bias/power. 
     
+    mode : 
+        min     : Always choose the bias value that minimizes the measured power.
+        max     : Always choose the bias value that maximizes the measured power.
+        manual  : Plots the measured power vs applied bias and waits for an user input of the bias to apply for every iteration.
+    """
+
+    # Depending on the chosen mode
+    if mode == 'manual': # Shows the power vs bias plot
+        plotsweep(biasList, powerList)
+        userInput = input('Enter your bias:')
+
+        if userInput == "min": # Easy command to get the minimal value
+            selectedBias = biasList[powerList.index(min(powerList))]
+
+        elif userInput == "max": # Easy command to get the maximal value
+            selectedBias = biasList[powerList.index(max(powerList))]
+
+        else: # Custom value
+            selectedBias = float(userInput)
+
+    elif mode == 'min': # Always choose the minimum value
+        selectedBias = biasList[powerList.index(min(powerList))]
+
+    elif mode == 'max': # Always choose the maximum value
+        selectedBias = biasList[powerList.index(max(powerList))]
+
+    else:
+        print('This option is not valid!')
+
+    return selectedBias

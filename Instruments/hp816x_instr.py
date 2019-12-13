@@ -59,7 +59,7 @@ class hp816x(object):
         libLocation -- Location of hp816x_32.dll library. It will search the system's PATH variable by default.
         """
         
-        self.hLib = WinDLL('hp816x_32.dll')
+        self.hLib = WinDLL(libLocation)
         self.createPrototypes()
         self.connected = False
         
@@ -94,8 +94,6 @@ class hp816x(object):
             mainframeType = '8163'
         else:
             mainframeType = 'none'
-
-        
 
         self.numSlots = self.mainframePortDict[mainframeType]
         # Get the slot info

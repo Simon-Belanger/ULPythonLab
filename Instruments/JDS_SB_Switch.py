@@ -12,6 +12,8 @@ class JDSopticalSwitch(Instrument_pyvisa):
          switch.setChannel(1)
     """
 
+    echo = False
+
     def __init__(self, gpib_num, COMPort):
         
         self.gpib_address = 'GPIB'+str(gpib_num)+'::'+str(COMPort)+'::INSTR'
@@ -23,7 +25,7 @@ class JDSopticalSwitch(Instrument_pyvisa):
     def setChannel(self, channelNumber):
     	"""Closes the optical path represented by integer channelNumber. Makes an optical path with Common."""
     	self.inst.write('CLOSE {}'.format(channelNumber))
-    	print('Switch path is now closed with channel {}.'.format(channelNumber))
+    	if self.echo: print('Switch path is now closed with channel {}.'.format(channelNumber))
 
     def getChannel(self):
     	"""Returns the current optical path number."""
@@ -38,7 +40,7 @@ class JDSopticalSwitch(Instrument_pyvisa):
     def reset(self):
     	"""Returns the switch to power up state, for example, channel 0, relay drivers off."""
     	self.inst.write('RESET')
-    	print('The switch has been reset to it\'s original state.')
+    	if self.echo: print('The switch has been reset to it\'s original state.')
 
     def readStatusRegister(self):
     	return self.inst.query('STB?')

@@ -3,14 +3,15 @@ from Instruments.Instrument_pyvisa import Instrument_pyvisa
 
 # DC source class
 class Agilent_E3631A(Instrument_pyvisa):
-    """Creates a DC source object in order to communicate with the Agilent E3631A triple output power supply.
-    """    
+    """Creates a DC source object in order to communicate with the Agilent E3631A triple output power supply."""    
     
-    def __init__(self, COMPort, channel):
-    	""" Constructor for the class. """
-        self.channel = self.format_chan_name(channel)
-        self.gpib_address = 'GPIB0::'+str(COMPort)+'::INSTR'
-        self.resolution = self.getresolution(self.format_chan_name(channel))
+    def __init__(self, gpib_num, COMPort, channel):
+        """ Constructor for the class. """
+        self.channel        = self.format_chan_name(channel)
+        self.gpib_address   = 'GPIB'+str(gpib_num)+'::'+str(COMPort)+'::INSTR'
+        self.resolution     = self.getresolution(self.format_chan_name(channel))
+        self.name           = 'AgilentE3631A::' + str(COMPort) +  '::' + str(self.channel)
+        self.connect()
 
     @staticmethod
     def format_chan_name(chan_name):
