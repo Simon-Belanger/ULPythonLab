@@ -1,124 +1,78 @@
-#%% Change working directory from the workspace root to the ipynb file location. Turn this addition off with the DataScience.changeDirOnImportExport setting
-# ms-python.python added
-import os
-try:
-	os.chdir(os.path.join(os.getcwd(), 'dev/MRF_FBL'))
-	print(os.getcwd())
-except:
-	pass
-#%% [markdown]
-# This script will sweep through all bias voltages and take a wavelength sweep for each position. It will then be possible to get the best response.
-
-#%%
 from Instruments import *
 import numpy as np
 import matplotlib.pyplot as plt
-import os
-import time
+import scipy.signal as sig
+from matplotlib import cm
+import os, time
 
-def params2filename(p1)
+def params2filename(p1):
+    """ This script will sweep through all bias voltages and take a wavelength sweep for each position. 
+        It will then be possible to get the best response. """
 
-# Wavelength sweep
-wvl_start=1540
-wvl_stop=1550
-wvl_step=0.002
+    # Sweep Parameters
+    wvl_start, wvl_stop, wvl_step = 1540e-9, 1550e-9, 0.002e-9
+    bias_min, bias_max, bias_points = [0,0,0], [10,16,10], 12
+    plot_sweep = False
 
-# Bias sweep
-bias_min = [0,0,0]
-bias_max = [10,16,10]
-bias_points = 12
+    # Location to save the data
+    data_dir = os.getcwd() + "\\data\\"
 
-# Options
-plot_sweep=False
+    # Initialize the DC sources
+    DC_source1 = Keithley_2612B('a')
+    DC_source2 = Keithley_2612B('b')
+    DC_source3 = Agilent_E3646A('2')
+    DC_source1.connect()
+    DC_source2.connect()
+    DC_source3.connect()
+    DC_source1.set_range_high()
+    DC_source2.set_range_high()
+    DC_source3.set_range_high()
 
-    
-#  Location to save the data
-data_dir = os.getcwd() + "\\data\\"
+    # Initialize the laser, connect it and set the sweep params
+    hp = hp816x_instr.hp816x()
+    hp.connect('GPIB0::20::INSTR')
+    hp.sweepUnit = 'dBm'
+    hp.sweepLaserOutput = 'lowsse' # lowsse ou highpower
+    hp.sweepStartWvl = wvl_start
+    hp.sweepStopWvl = wvl_stop
+    hp.sweepStepWvl = wvl_step
 
-    
-# Initialize the DC sources
-DC_source1 = Keithley_2612B('a')
-DC_source2 = Keithley_2612B('b')
-DC_source3 = Agilent_E3646A('2')
-DC_source1.connect()
-DC_source2.connect()
-DC_source3.connect()
-DC_source1.set_range_high()
-DC_source2.set_range_high()
-DC_source3.set_range_high()
-    
-# Initialize the laser, connect it and set the sweep params
-hp = hp816x_instr.hp816x()
-hp.connect('GPIB0::20::INSTR')
-hp.sweepUnit = 'dBm'
-hp.sweepLaserOutput = 'lowsse' # lowsse ou highpower
-hp.sweepStartWvl = wvl_start * 1e-9
-hp.sweepStopWvl = wvl_stop * 1e-9
-hp.sweepStepWvl = wvl_step * 1e-9
-    
-# Sweep the bias
-v1_values = np.linspace(bias_min[0],bias_max[0],bias_points).tolist()
-v2_values = np.linspace(bias_min[1],bias_max[1],bias_points).tolist()
-v3_values = np.linspace(bias_min[2],bias_max[2],bias_points).tolist()
+    for v1 in np.linspace(bias_min[0],bias_max[0],bias_points).tolist():
+        DC_source1.source_voltage(v1)
+        for v2 in np.linspace(bias_min[1],bias_max[1],bias_points).tolist():
+            DC_source2.source_voltage(v2)
+            for v3 in np.linspace(bias_min[0],bias_max[0],bias_points).tolist():
+                DC_source3.source_voltage(v3)
 
-for v1 in v1_values:
-    
-    # Apply voltage for source #1
-    DC_source1.source_voltage(v1)
-    
-    for v2 in v2_values:
+                filename = "V1=" + '{:.3f}'.format(v1).replace(".","_") + ","             + "V2=" + '{:.3f}'.format(v2).replace(".","_") + ","            + "V3=" + '{:.3f}'.format(v3).replace(".","_") +".txt"
+
+                # Perform the wavelength sweep (and time it)
+                start = time.time()
+                wvl_sweep,pow_sweep = hp.sweep()
+                print("sweep time = " + str(time.time() - start))
+
+                # Plot the results
+                plot_sweep=False
+                if plot_sweep == True:
+                    plt.plot(wvl_sweep*1e9,pow_sweep.transpose()[0], label='Detector1')
+                    plt.plot(wvl_sweep*1e9,pow_sweep.transpose()[1], label='Detector2')
+                    plt.xlabel('Wavelength (nm)')
+                    plt.ylabel('Power (dBm)')
+                    plt.legend()
+                    plt.show()
         
-        # Apply voltage for source #1
-        DC_source2.source_voltage(v2)
-        
-        for v3 in v3_values:
-            
-            # Apply voltage for source #1
-            DC_source3.source_voltage(v3)
-            
-               
-            filename = "V1=" + '{:.3f}'.format(v1).replace(".","_") + ","             + "V2=" + '{:.3f}'.format(v2).replace(".","_") + ","            + "V3=" + '{:.3f}'.format(v3).replace(".","_") +".txt"
-        
-            # Perform the wavelength sweep (and time it)
-            start = time.time()
-            wvl_sweep,pow_sweep = hp.sweep()
-            print("sweep time = " + str(time.time() - start))
-        
-            # Plot the results
-            plot_sweep=False
-            if plot_sweep == True:
-            
-                plt.plot(wvl_sweep*1e9,pow_sweep.transpose()[0], label='Detector1')
-                plt.plot(wvl_sweep*1e9,pow_sweep.transpose()[1], label='Detector2')
-                plt.xlabel('Wavelength (nm)')
-                plt.ylabel('Power (dBm)')
-                plt.legend()
-                plt.show()
-        
-            # Save the results
-            if not(filename==""):
-                np.savetxt(data_dir + filename, (wvl_sweep,pow_sweep.transpose()[0],pow_sweep.transpose()[1]))
-                print("Saving file : " + filename)
-            
-            # Turn off the laser
-            hp.setTLSOutput('lowsse', slot=0)
-            hp.setTLSState('off' , slot=0)
-            hp.setPWMPowerUnit(2, 0, 'dBm')
-            hp.setPWMPowerUnit(2, 1, 'dBm')
-            hp.setPWMPowerRange(2, 0, rangeMode='auto')
-            hp.setPWMPowerRange(2, 1, rangeMode='auto')
+                # Save the results
+                if not(filename==""):
+                    np.savetxt(data_dir + filename, (wvl_sweep,pow_sweep.transpose()[0],pow_sweep.transpose()[1]))
+                    print("Saving file : " + filename)
 
-DC_source1.source_voltage(0)
-DC_source2.source_voltage(0)
-DC_source3.source_voltage(0)
+    DC_source1.source_voltage(0)
+    DC_source2.source_voltage(0)
+    DC_source3.source_voltage(0)
 
 
 #%%
 ###### Load the sweep data save to file 
-import os
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib import cm
 
 def load_and_plot(filename,color):
     
@@ -130,9 +84,6 @@ def load_and_plot(filename,color):
     plt.ylabel('Power (dBm)')
     
 data_dir = os.getcwd() + "\\data\\"
-
-#Build data list
-
 
 # Sweep the bias
 bias_min = [0,0,0]
@@ -166,13 +117,8 @@ plt.show()
 f.savefig(data_dir + 'fig.pdf')
 
 
-#%%
+
 ###### Find peaks and further analysis
-import os
-import scipy.signal as sig
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib import cm
     
 data_dir = os.getcwd() + "\\data\\"
 
@@ -258,17 +204,3 @@ plt.plot(fmerit_sorted, label='Detector1',color=cmap(curve_count/len(namelist_ke
 plt.xlabel('Wavelength (nm)')
 plt.ylabel('Power (dBm)')
 plt.show()
-
-
-#%%
-namelist_sorted
-
-
-#%%
-np.savetxt(data_dir + "fmerit.txt", np.concatenate(fmerit).ravel())
-
-
-#%%
-fmerit
-
-
