@@ -2,7 +2,6 @@
 Various codes used to interact remotely with the instruments in the laboratory written in Python.
 
 # References
-
 * Info on the automated probe station used at UBC can be found [here!](https://siepic.ubc.ca/probestation)
 * Matlab code for the Probe station used at UBC can be found [here!](https://www.dropbox.com/s/dl/skhjntjs90sjtv9/SiPhoTestBench.zip)
 * Python based automated probe station that is used at the University of British Columbia (UBC). The source code for the probe station can be found [here!](https://github.com/lukasc-ubc/pyOptomip)  
@@ -14,6 +13,18 @@ Various codes used to interact remotely with the instruments in the laboratory w
 2. Download Sublime text which is a lightweight text editor that will allow you to easily build your code. [here!](https://www.sublimetext.com)
 3. Install the Conda plugin for sublime text. Follow the procedure [here!](https://docs.anaconda.com/anaconda/user-guide/tasks/integration/sublime/)
 4. Write some code!
+
+# Lab instruments included
+For all these instruments, a class is already available and it can be found it the Instruments subdirectory.
+* Agilent/Keysight E3631A Triple Output DC Power Supply
+* Agilent E3646A Dual Output DC Power Supply
+* IDPhotonics CoBriteDX1 Laser
+* ILX LDT-5910B Thermoelectric Temperature Controller
+* JDS Uniphase SB Series Fiber Optic Switch
+* Keithley 2612B System SourceMeter Instrument
+* Luna Technologies OVA5000 Optical Vector Analyzer
+* Qontrol Systems Q8iv and Q8b Driver Modules
+* HP/Agilent/Keysight 816x Lightwave Measurement System
 
 # Drivers
 * Agilent/Keithley/HP Lightwave Measurement System 816x [here](https://www.keysight.com/main/software.jspx?ckey=112417&lc=eng&cc=CA&nid=-11143.0.00&id=112417)
