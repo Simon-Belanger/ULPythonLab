@@ -16,8 +16,11 @@ Various codes used to interact remotely with the instruments in the laboratory w
 
 # Lab instruments included
 For all these instruments, a class is already available and it can be found it the Instruments subdirectory.
+* Anristu MS9740A Optical Spectrum Analyzer
 * Agilent/Keysight E3631A Triple Output DC Power Supply
 * Agilent E3646A Dual Output DC Power Supply
+* EXFO PM-1600 Series High-Speed Power Meter
+* EXFO T100S-HP Waveleneght tunable laser diode source (fka Photonetics TUNICS-BT)
 * IDPhotonics CoBriteDX1 Laser
 * ILX LDT-5910B Thermoelectric Temperature Controller
 * JDS Uniphase SB Series Fiber Optic Switch
