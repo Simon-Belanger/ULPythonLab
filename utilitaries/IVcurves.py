@@ -55,7 +55,7 @@ def measureMultipleIVCurve(powerSuppliesList, voltage):
 		labels.append(powerSupply.name)
 	return V, IAll, labels
 
-def plotMultipleIVCurve(V, IAll, labels):
+def plotMultipleIVCurve(V, IAll, labels, savePDF=True):
 	'''Plot the IV curve for all heaters.'''
 
 	figure = plt.figure(figsize=(15,7.5))
@@ -72,6 +72,8 @@ def plotMultipleIVCurve(V, IAll, labels):
 	handles, labels = Pplot.get_legend_handles_labels()
 	figure.legend(handles, labels, loc='upper right')
 	plt.show()
+	if savePDF==True:
+		figure.savefig(input('Enter a name for the pdf (without the extension):\n')+'.pdf', bbox_inches='tight')
 
 def loadIVCurveMultiple(filename):
 	''' Open a file containing an IV curve and plot it.'''

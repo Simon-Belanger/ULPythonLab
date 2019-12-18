@@ -76,10 +76,10 @@ class sweepobj(object):
 
         plt.figure(figsize=(10, 4))
         ax = plt.axes()
-        ax.xaxis.set_major_locator(ticker.MultipleLocator(5))
-        ax.xaxis.set_minor_locator(ticker.MultipleLocator(1))
-        ax.yaxis.set_major_locator(ticker.MultipleLocator(10))
-        ax.yaxis.set_minor_locator(ticker.MultipleLocator(2))
+        #ax.xaxis.set_major_locator(ticker.MultipleLocator(5))
+        #ax.xaxis.set_minor_locator(ticker.MultipleLocator(1))
+        #ax.yaxis.set_major_locator(ticker.MultipleLocator(10))
+        #ax.yaxis.set_minor_locator(ticker.MultipleLocator(2))
         ax.tick_params(which='major', direction='inout', length=8, width=2, colors='k',
                        labelsize=18)
         ax.tick_params(which='minor', direction='in', length=4, width=1, colors='k',
@@ -110,6 +110,10 @@ class sweepobj(object):
         """ Function that explicits all the parameters of the datafile. """
         pprint(self.__dict__, indent=2)
 
+    def calibrate(self, calibrationPort1, calibrationPort2):
+        """ Plot the data stored in the sweepobject but substract to it data stored in another sweepobj. """
+        self.detector_1 = self.detector_1 - calibrationPort1
+        self.detector_2 = self.detector_2 - calibrationPort2
 
 """
 Extra functions used by the previous instance of this code.
